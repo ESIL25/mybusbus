@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 import json
 import folium
-from streamlit_folium import folium_static
 
 def get_bus_stops():
     # OpenStreetMap Overpass API를 사용하여 버스 정류장 정보를 가져오는 함수
@@ -23,27 +22,8 @@ def get_bus_locations(api_key, bus_route_id):
         "ServiceKey": api_key,
         "busRouteId": bus_route_id,
     }
-    
-    try:
-        response = requests.get(url, params=params)
-        response.raise_for_status()  # HTTP 오류를 발생시킴
-        data = response.json()
-    except requests.exceptions.HTTPError as errh:
-        st.error(f"HTTP 오류 발생: {errh}")
-        return None
-    except requests.exceptions.ConnectionError as errc:
-        st.error(f"연결 오류 발생: {errc}")
-        return None
-    except requests.exceptions.Timeout as errt:
-        st.error(f"시간 초과: {errt}")
-        return None
-    except requests.exceptions.RequestException as err:
-        st.error(f"요청 예외: {err}")
-        return None
-    except json.decoder.JSONDecodeError as json_err:
-        st.error(f"JSON 디코딩 오류: {json_err}")
-        return None
-    
+    response = requests.get(url, params=params)
+    data = response.json()
     return data
 
 def main():
@@ -63,4 +43,10 @@ def main():
     api_key = "PVlQlhVqCM51twmt0Adp4f3LjZLgbpOyYhUbDqt%2FLGW0xf0%2FvjPkfRAN8k6BWndKMws45AtjZBMuFbOn37HRxg%3D%3D"
     bus_route_id = "315"
     bus_locations_data = get_bus_locations(api_key, bus_route_id)
-    if bus_locations_
+    if bus_locations_data:
+        for bus_location in bus_locations_data['ServiceResult']['msgBody']['itemList']:
+            lat = float(bus_location['gpsY'])
+            lon = float(bus_location['gpsX'])
+            folium.Marker([lat, lon], popup='Bus').add_to(m)
+
+    m

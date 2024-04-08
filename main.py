@@ -17,12 +17,10 @@ def get_bus_stops():
 
 def get_bus_locations(api_key, bus_route_id):
     # 서울시 버스 실시간 위치 정보를 가져오는 함수
-    url = "http://ws.bus.go.kr/api/rest/buspos/getBusPosByRouteSt"
+    url = "http://ws.bus.go.kr/api/rest/buspos/getBusPosByRtid"
     params = {
         "ServiceKey": api_key,
         "busRouteId": bus_route_id,
-        "startOrd": 1,
-        "endOrd": 13
     }
     response = requests.get(url, params=params)
     data = response.json()

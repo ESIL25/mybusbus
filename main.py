@@ -7,7 +7,7 @@ def get_bus_stops():
     overpass_url = "http://overpass-api.de/api/interpreter"
     overpass_query = """
         [out:json];
-        node["highway"="bus_stop"](around:1000,37.5665,126.9780);
+        node["highway"="bus_stop"](around:2000, 37.404988,127.106007);
         out;
         """
     response = requests.get(overpass_url, params={'data': overpass_query})
@@ -19,7 +19,7 @@ def main():
 
     # 버스 정류장 정보를 가져와 지도 위에 표시
     bus_stops_data = get_bus_stops()
-    map_center = [37.5665, 126.9780]
+    map_center = [37.403051, 127.107626]
     m = folium.Map(location=map_center, zoom_start=15)
 
     for stop in bus_stops_data['elements']:

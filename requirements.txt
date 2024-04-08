@@ -3,3 +3,4 @@ pandas
 numpy
 seaborn
 Folium
+streamlit-folium==0.13.0

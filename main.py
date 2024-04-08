@@ -1,48 +1,75 @@
 import streamlit as st
 import requests
 import json
-from streamlit_folium import folium_static
 import folium
+from streamlit_folium import folium_static
 
-# OpenStreetMap Overpass API를 사용하여 버스 정류장 정보를 가져오는 함수
 def get_bus_stops():
+    # OpenStreetMap Overpass API를 사용하여 버스 정류장 정보를 가져오는 함수
     overpass_url = "http://overpass-api.de/api/interpreter"
     overpass_query = """
         [out:json];
-        node["highway"="bus_stop"](around:1000, 37.495916,127.124865);
+        node["highway"="bus_stop"](around:500, 37.404988,127.106007);
         out;
-    """
+        """
     response = requests.get(overpass_url, params={'data': overpass_query})
     data = response.json()
     return data
 
-# 서울시 버스 실시간 위치 정보를 가져오는 함수
 def get_bus_locations(api_key, bus_route_id):
+    # 서울시 버스 실시간 위치 정보를 가져오는 함수
     url = "http://ws.bus.go.kr/api/rest/buspos/getBusPosByRtid"
     params = {
         "ServiceKey": api_key,
         "busRouteId": bus_route_id,
     }
-    response = requests.get(url, params=params)
-    data = response.json()
+    
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()  # HTTP 오류를 발생시킴
+        data = response.json()
+    except requests.exceptions.HTTPError as errh:
+        st.error(f"HTTP 오류 발생: {errh}")
+        return None
+    except requests.exceptions.ConnectionError as errc:
+        st.error(f"연결 오류 발생: {errc}")
+        return None
+    except requests.exceptions.Timeout as errt:
+        st.error(f"시간 초과: {errt}")
+        return None
+    except requests.exceptions.RequestException as err:
+        st.error(f"요청 예외: {err}")
+        return None
+    except json.decoder.JSONDecodeError as json_err:
+        st.error(f"JSON 디코딩 오류: {json_err}")
+        return None
+    
     return data
 
-if __name__ == '__main__':
+def main():
     st.title('버스 이동 정보 지도')
 
     # 버스 정류장 정보를 가져와 지도 위에 표시
     bus_stops_data = get_bus_stops()
-    m = folium.Map(location=[37.495916, 127.124865], zoom_start=20)
+    map_center = [37.403051, 127.107626]
+    m = folium.Map(location=map_center, zoom_start=20)
 
     for stop in bus_stops_data['elements']:
-        folium.Marker([stop['lat'], stop['lon']], popup='버스 정류장').add_to(m)
+        lat = stop['lat']
+        lon = stop['lon']
+        folium.Marker([lat, lon], popup='Bus Stop').add_to(m)
 
     # 실시간으로 버스 위치를 가져와 지도에 표시
     api_key = "PVlQlhVqCM51twmt0Adp4f3LjZLgbpOyYhUbDqt%2FLGW0xf0%2FvjPkfRAN8k6BWndKMws45AtjZBMuFbOn37HRxg%3D%3D"
-    bus_route_id = "315"
+    bus_route_id = "100100118"  # 관심 있는 버스 노선 ID로 변경해야 합니다
     bus_locations_data = get_bus_locations(api_key, bus_route_id)
     if bus_locations_data:
         for bus_location in bus_locations_data['ServiceResult']['msgBody']['itemList']:
-            folium.Marker([float(bus_location['gpsY']), float(bus_location['gpsX'])], popup='버스').add_to(m)
+            lat = float(bus_location['gpsY'])
+            lon = float(bus_location['gpsX'])
+            folium.Marker([lat, lon], popup='Bus').add_to(m)
 
     folium_static(m)
+
+if __name__ == "__main__":
+    main()

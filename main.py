@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import folium
-
+from streamlit_folium import folium_static
 def get_bus_stops():
     # OpenStreetMap Overpass API를 사용하여 버스 정류장 정보를 가져오는 함수
     overpass_url = "http://overpass-api.de/api/interpreter"
